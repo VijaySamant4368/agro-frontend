@@ -1,87 +1,73 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Construction, ArrowLeft, Home, Compass } from "lucide-react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { LIVE_REPORTS } from "@/lib/data/farms";
+import { cn } from "@/lib/utils";
 
-interface UnderConstructionProps {
-  title?: string;
-  description?: string;
-  showBackButton?: boolean;
-  showHomeButton?: boolean;
-}
+export const metadata = { title: "Live Landslides — AgroSafe Travel" };
 
-export function UnderConstruction({
-  title = "Page Under Construction",
-  description = "We are actively building this feature. Please check back soon!",
-  showBackButton = true,
-  showHomeButton = true,
-}: UnderConstructionProps) {
-  const pathname = usePathname();
-  const [currentUrl, setCurrentUrl] = useState<string>("");
+const SEVERITY_STYLES: Record<string, string> = {
+  Critical: "bg-red-50 text-danger border-red-200",
+  High: "bg-orange-50 text-orange-700 border-orange-200",
+  Medium: "bg-amber-50 text-amber-700 border-amber-200",
+  Low: "bg-brand-50 text-brand-700 border-brand-200",
+};
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setCurrentUrl(window.location.href);
-    }
-  }, [pathname]);
-
-  const displayPath = currentUrl || pathname || "this page";
-
+export default function LivePage() {
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center px-4 py-12 sm:px-6">
-      <Card className="w-full p-8 text-center sm:p-10">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-8 ring-amber-50/50">
-          <Construction className="size-8 animate-bounce" aria-hidden="true" />
-        </div>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Live Landslide Map</h1>
+      <p className="mt-2 text-ink-muted">
+        Verified hazard reports from the last 7 days, synced from the Safety Matrix.
+      </p>
 
-        <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-          {title}
-        </h1>
+      <div className="relative mt-8 aspect-21/9 overflow-hidden rounded-lg border border-line">
+        <Image
+          src="https://picsum.photos/seed/agrosafe-live-map/1600/700"
+          alt="Live regional hazard map"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
 
-        <p className="mt-2 text-sm text-ink-muted sm:text-base">
-          {description}
-        </p>
-
-        <div className="mt-6 rounded-lg border border-line bg-canvas/60 p-3 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-subtle">
-            Target Route / URL
-          </p>
-          <p className="mt-1 break-all font-mono text-xs text-brand-700 sm:text-sm font-medium">
-            {displayPath}
-          </p>
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {showBackButton && (
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.history.back();
-                }
-              }}
-              className="gap-2"
-            >
-              <ArrowLeft className="size-4" />
-              Go Back
-            </Button>
-          )}
-
-          {showHomeButton && (
-            <ButtonLink href="/" variant="primary" size="md" className="gap-2">
-              <Home className="size-4" />
-              Return to Home
-            </ButtonLink>
-          )}
-        </div>
+      <Card className="mt-8 overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead className="border-b border-line text-left">
+            <tr className="text-ink-muted">
+              <th scope="col" className="px-5 py-4 font-semibold">Zone ID</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Location</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Coordinates</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Severity</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Reported</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {LIVE_REPORTS.map((r) => (
+              <tr key={r.id}>
+                <td className="px-5 py-4 font-mono text-xs">{r.id}</td>
+                <td className="px-5 py-4 font-medium">{r.location}</td>
+                <td className="px-5 py-4 text-ink-muted">
+                  {r.lat}° N, {r.lng}° E
+                </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={cn(
+                      "inline-block rounded-full border px-2.5 py-1 text-xs font-semibold",
+                      SEVERITY_STYLES[r.severity],
+                    )}
+                  >
+                    {r.severity}
+                  </span>
+                </td>
+                <td className="px-5 py-4 text-ink-muted">{r.reportedAt}</td>
+                <td className="px-5 py-4 text-ink-muted">{r.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Card>
     </div>
   );
 }
-
-export default UnderConstruction;
